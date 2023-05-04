@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <style>
+      /* Add your styles here */
+      .hidden {
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <form id="dateForm">
+      <label for="startDate">Start Date:</label>
+      <input type="date" id="startDate" name="startDate" required />
+      <label for="endDate">End Date:</label>
+      <input type="date" id="endDate" name="endDate" required />
+      <button type="submit">Download Archive</button>
+    </form>
+    <div id="progressContainer" class="hidden">
+      <progress id="progressDaysBar" max="100" value="0"></progress>
+      <p id="progressDaysMessage"></p>
+      <progress id="progressJobsBar" max="100" value="0"></progress>
+      <p id="progressJobsMessage"></p>
+    </div>
+    <script src="dist/popup.js"></script>
+  </body>
+</html>
