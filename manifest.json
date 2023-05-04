@@ -14,9 +14,6 @@
     "https://www.midjourney.com/",
     "https://storage.googleapis.com/*"
   ],
-  "permissions": [
-    "storage"
-  ],
   "icons": {
     "16": "images/icon16.png",
     "48": "images/icon48.png",
