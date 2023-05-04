@@ -63,7 +63,7 @@ document.getElementById("dateForm").addEventListener("submit", async (event) => 
           const imageBlob = await response.blob();
 
           // Add EXIF metadata
-          const modifiedBlob = await addExifMetadata(imageBlob, username, id, index);
+          const modifiedBlob = await addExifMetadata(imageBlob, jobStatusData);
 
           // Add the image to the zip file
           zip.file(`${username}_${id}_${index}.png`, modifiedBlob);
@@ -91,7 +91,7 @@ document.getElementById("dateForm").addEventListener("submit", async (event) => 
   progressDaysMessage.innerText = "Download complete!";
 });
 
-async function addExifMetadata(imageBlob, username, id, index) {
+async function addExifMetadata(imageBlob, jobStatusData) {
   // Implement this function to add the required EXIF metadata to the image
   // You may use a library like "piexifjs" to manipulate the EXIF data
   return imageBlob;
