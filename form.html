@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <style>
+      /* Add your styles here */
+      body {
+        max-width: 600px;
+        font-size: 16px;
+        margin: 0 auto;
+      }
+      .hidden {
+        display: none;
+      }
+      h1 {
+        margin-bottom: 8px;
+      }
+      .subtitle {
+        margin-bottom: 32px;
+        font-style: italic;
+      }
+      #dateForm, #progressContainer {
+        border: 1px solid black;
+        padding: 16px;
+        margin: 16px 0 48px 0;
+      }
+      #startDate, #endDate {
+        margin-bottom: 8px;
+      }
+      .footnote {
+        display: block;
+        margin: 8px auto 0 auto;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Midjourney Archive Downloader</h1>
+    <div class='subtitle'>A quick and dirty solution by <a href='https://twitter.com/dreamingtulpa' target='_blank'>@dreamingtulpa</a> until Midjourney improves their download feature</div>
+    <p>
+      This extension allows you to download your Midjourney archive. Make sure you're logged into Midjourney and enter the
+      start and end dates of the archive you want to download and click the button below.
+    </p>
+    <form id="dateForm">
+      <label for="startDate">Start Date:</label>
+      <input type="date" id="startDate" name="startDate" required />
+      <br>
+      <label for="endDate">End Date:</label>
+      <input type="date" id="endDate" name="endDate" required />
+      <br>
+      <button type="submit">Download Archive</button>
+    </form>
+    <div id="progressContainer" class="hidden">
+      <progress id="progressDaysBar" max="100" value="0"></progress>
+      <p id="progressDaysMessage"></p>
+      <progress id="progressJobsBar" max="100" value="0"></progress>
+      <p id="progressJobsMessage"></p>
+    </div>
+    <small class='footnote'>
+      <strong>Footnotes:</strong>
+    </small>
+    <small class='footnote'>
+      1) Missing a feature? Code is available on <a href='https://github.com/dreamingtulpa/midjourney-archive-chrome-extension' target='_blank'>GitHub</a>. PR's are welcome!
+    </small>
+    <small class='footnote'>
+      2) Checkout <a href='https://aiartweekly.com' target='_blank'>AI Art Weekly</a> for the latest AI art news, interviews and resources.
+    </small>
+    <script src="dist/popup.js"></script>
+  </body>
+</html>

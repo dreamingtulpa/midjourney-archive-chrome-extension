@@ -16,13 +16,12 @@ document.getElementById("dateForm").addEventListener("submit", async (event) => 
   form.classList.add("hidden");
   progressContainer.classList.remove("hidden");
 
-  const totalDays = Math.floor((endDate - startDate) / (1000 * 60 * 60 * 24)) + 1;
   let processedDays = 0;
+  const totalDays = Math.floor((endDate - startDate) / (1000 * 60 * 60 * 24)) + 1;
 
   // Iterate through the dates and perform API calls
   for (let currentDate = startDate; currentDate <= endDate; currentDate.setDate(currentDate.getDate() + 1)) {
     progressDaysMessage.innerText = `[${processedDays}/${totalDays}] Processing ${currentDate.toISOString().slice(0, 10)}...`;
-
     const year = currentDate.getFullYear();
     const month = currentDate.getMonth() + 1;
     const day = currentDate.getDate();
@@ -66,13 +65,14 @@ document.getElementById("dateForm").addEventListener("submit", async (event) => 
           const modifiedBlob = await addExifMetadata(imageBlob, jobStatusData);
 
           // Add the image to the zip file
-          zip.file(`${username}_${id}_${index}.png`, modifiedBlob);
+          zip.file(`${username}_${index}_${id}.png`, modifiedBlob);
           fileCount++;
         }
       }
 
       processedJobs++;
       progressJobsBar.value = (processedJobs / totalJobs) * 100;
+      progressJobsMessage.innerText = `[${processedJobs}/${totalJobs}] Fetched ${jobId}!`;
     }
     processedDays++;
     progressDaysBar.value = (processedDays / totalDays) * 100;
@@ -81,10 +81,13 @@ document.getElementById("dateForm").addEventListener("submit", async (event) => 
     if (fileCount > 0) {
       const zipBlob = await zip.generateAsync({ type: "blob" });
       const downloadUrl = URL.createObjectURL(zipBlob);
-      const downloadLink = document.createElement("a");
-      downloadLink.href = downloadUrl;
-      downloadLink.download = `midjourney_archive_${year}-${month}-${day}_[${fileCount}].zip`;
-      downloadLink.click();
+
+      chrome.downloads.download({
+        url: downloadUrl,
+        filename: `midjourney_archive_${year}-${month}-${day}_[${fileCount}].zip`,
+        saveAs: true, // This will show the save dialogue
+      });
+
       URL.revokeObjectURL(downloadUrl);
     }
   }
@@ -95,12 +98,4 @@ async function addExifMetadata(imageBlob, jobStatusData) {
   // Implement this function to add the required EXIF metadata to the image
   // You may use a library like "piexifjs" to manipulate the EXIF data
   return imageBlob;
-}
-
-function sendMessageToBackgroundScript(message) {
-  return new Promise((resolve) => {
-    chrome.runtime.sendMessage(message, (response) => {
-      resolve(response);
-    });
-  });
 }
