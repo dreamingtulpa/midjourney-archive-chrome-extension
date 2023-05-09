@@ -81,12 +81,10 @@ document.getElementById("dateForm").addEventListener("submit", async (event) => 
     if (fileCount > 0) {
       const zipBlob = await zip.generateAsync({ type: "blob" });
       const downloadUrl = URL.createObjectURL(zipBlob);
-
-      chrome.downloads.download({
-        url: downloadUrl,
-        filename: `midjourney_archive_${year}-${month}-${day}_[${fileCount}].zip`,
-        saveAs: true, // This will show the save dialogue
-      });
+      const downloadLink = document.createElement("a");
+      downloadLink.href = downloadUrl;
+      downloadLink.download = `midjourney_archive_${year}-${month}-${day}_[${fileCount}].zip`;
+      downloadLink.click();
 
       URL.revokeObjectURL(downloadUrl);
     }
