@@ -93,7 +93,7 @@ document.getElementById("dateForm").addEventListener("submit", async (event) => 
 
 async function processImages(jobStatusData, zip) {
   // Download and process images
-  const { username, image_paths, id, prompt, _parsed_params } = jobStatusData;
+  const { username, image_paths, id, parent_id, enqueue_time, full_command, prompt, event, _parsed_params } = jobStatusData;
   let fileCount = 0;
 
   for (const [index, imagePath] of image_paths.entries()) {
@@ -104,6 +104,7 @@ async function processImages(jobStatusData, zip) {
     // Filename conversions
     const truncated_username = makeFilenameCompatible(username);
     const truncated_prompt = makeFilenameCompatible(prompt, 48);
+    const datetime = convertDateTimeFormat(enqueue_time);
 
     // Add EXIF metadata
     const modifiedBlob = await addExifMetadata(imageBlob, jobStatusData);
@@ -111,9 +112,9 @@ async function processImages(jobStatusData, zip) {
     // Build filename
     let filename;
     if (image_paths.length > 1) {
-      filename = `${truncated_username}_${truncated_prompt}_${index}_${id}.png`
+      filename = `${datetime}_${id}_${index}_${truncated_prompt}.png`
     } else {
-      filename = `${truncated_username}_${truncated_prompt}_${id}.png`
+      filename = `${datetime}_${id}_${truncated_prompt}.png`
     }
 
     // Add the image to the zip file
@@ -134,6 +135,18 @@ function makeFilenameCompatible(str, maxLength) {
   } else {
     return result;
   }
+}
+
+function convertDateTimeFormat(dateTimeString) {
+  const dt = new Date(dateTimeString);
+  const year = dt.getFullYear();
+  const month = String(dt.getMonth() + 1).padStart(2, '0'); // Months are 0-based in JavaScript
+  const day = String(dt.getDate()).padStart(2, '0');
+  const hours = String(dt.getHours()).padStart(2, '0');
+  const minutes = String(dt.getMinutes()).padStart(2, '0');
+  const seconds = String(dt.getSeconds()).padStart(2, '0');
+
+  return `${year}-${month}-${day}-${hours}${minutes}${seconds}`;
 }
 
 async function addExifMetadata(imageBlob, jobStatusData) {
