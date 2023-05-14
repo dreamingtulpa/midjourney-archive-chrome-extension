@@ -54,18 +54,22 @@ document.getElementById("dateForm").addEventListener("submit", async (event) => 
 
       if (jobStatusData.event.eventType == 'upscale') {
         // Download and process images
-        const { image_paths, username, id } = jobStatusData;
+        const { image_paths, id } = jobStatusData;
 
         for (const [index, imagePath] of image_paths.entries()) {
           // Fetch the image
           const response = await fetch(imagePath);
           const imageBlob = await response.blob();
 
+          // Filename conversions
+          const username = makeFilenameCompatible(jobStatusData.username);
+          const prompt = makeFilenameCompatible(jobStatusData.prompt, 48);
+
           // Add EXIF metadata
           const modifiedBlob = await addExifMetadata(imageBlob, jobStatusData);
 
           // Add the image to the zip file
-          zip.file(`${username}_${index}_${id}.png`, modifiedBlob);
+          zip.file(`${username}_${prompt}_${index}_${id}.png`, modifiedBlob);
           fileCount++;
         }
       }
@@ -91,6 +95,18 @@ document.getElementById("dateForm").addEventListener("submit", async (event) => 
   }
   progressDaysMessage.innerText = "Download complete!";
 });
+
+function makeFilenameCompatible(str, maxLength) {
+  if (typeof str === 'undefined') {
+    str = 'None';
+  }
+  let result = str.replace(/ /g, '_').replace(/[^\w-]/g, '');
+  if (maxLength) {
+    return result.length > maxLength ? result.substr(0, maxLength) : result;
+  } else {
+    return result;
+  }
+}
 
 async function addExifMetadata(imageBlob, jobStatusData) {
   // Implement this function to add the required EXIF metadata to the image
