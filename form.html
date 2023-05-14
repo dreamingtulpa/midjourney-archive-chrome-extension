@@ -26,6 +26,10 @@
       #startDate, #endDate {
         margin-bottom: 8px;
       }
+      .download-option-hint {
+        display: block;
+        margin-top: 8px;
+      }
       .footnote {
         display: block;
         margin: 8px auto 0 auto;
@@ -45,6 +49,14 @@
       <br>
       <label for="endDate">End Date:</label>
       <input type="date" id="endDate" name="endDate" required />
+      <br>
+      <!-- Radio buttons for upscale options -->
+      <label for="upscaleOptions">Download Options:</label><br>
+      <input type="radio" id="onlyV5Upscales" name="upscaleOptions" value="onlyV5Upscales" checked />
+      <label for="onlyV5Upscales">Only v5+ upscales</label><br>
+      <input type="radio" id="allImagesV5Grids" name="upscaleOptions" value="allImagesV5Grids" />
+      <label for="allImagesV5Grids">All images from v5+ grids</label><br>
+      <small class='download-option-hint'>Only upscales will be downloaded for v1, v2, v3, v4, test, testp jobs regardless of above selection</small>
       <br>
       <button type="submit">Download Archive</button>
     </form>

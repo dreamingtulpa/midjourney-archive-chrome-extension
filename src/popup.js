@@ -5,6 +5,7 @@ document.getElementById("dateForm").addEventListener("submit", async (event) => 
 
   const startDate = new Date(event.target.startDate.value);
   const endDate = new Date(event.target.endDate.value);
+  const upscaleSelection = document.querySelector('input[name="upscaleOptions"]:checked').value;
 
   // Show progress container and hide form
   const progressContainer = document.getElementById("progressContainer");
@@ -52,26 +53,20 @@ document.getElementById("dateForm").addEventListener("submit", async (event) => 
       const jobStatusData = await jobStatusResponse.json();
       // console.log(jobStatusData);
 
-      if (jobStatusData.event.eventType == 'upscale') {
-        // Download and process images
-        const { image_paths, id } = jobStatusData;
+      // Check job version
+      let versionNumber = parseFloat(jobStatusData._parsed_params.version);
+      let isVersion5Plus = !isNaN(versionNumber) && versionNumber >= 5;
 
-        for (const [index, imagePath] of image_paths.entries()) {
-          // Fetch the image
-          const response = await fetch(imagePath);
-          const imageBlob = await response.blob();
+      // Set event type
+      let eventType = jobStatusData.event.eventType
 
-          // Filename conversions
-          const username = makeFilenameCompatible(jobStatusData.username);
-          const prompt = makeFilenameCompatible(jobStatusData.prompt, 48);
-
-          // Add EXIF metadata
-          const modifiedBlob = await addExifMetadata(imageBlob, jobStatusData);
-
-          // Add the image to the zip file
-          zip.file(`${username}_${prompt}_${index}_${id}.png`, modifiedBlob);
-          fileCount++;
-        }
+      // Process images
+      if (isVersion5Plus && eventType === "imagine" && upscaleSelection === "allImagesV5Grids") {
+        fileCount += await processImages(jobStatusData, zip);
+      } else if (isVersion5Plus && eventType === "upscale" && upscaleSelection === "onlyV5Upscales") {
+        fileCount += await processImages(jobStatusData, zip);
+      } else if (!isVersion5Plus && eventType === "upscale") {
+        fileCount += await processImages(jobStatusData, zip);
       }
 
       processedJobs++;
@@ -95,6 +90,39 @@ document.getElementById("dateForm").addEventListener("submit", async (event) => 
   }
   progressDaysMessage.innerText = "Download complete!";
 });
+
+async function processImages(jobStatusData, zip) {
+  // Download and process images
+  const { username, image_paths, id, prompt, _parsed_params } = jobStatusData;
+  let fileCount = 0;
+
+  for (const [index, imagePath] of image_paths.entries()) {
+    // Fetch the image
+    const response = await fetch(imagePath);
+    const imageBlob = await response.blob();
+
+    // Filename conversions
+    const truncated_username = makeFilenameCompatible(username);
+    const truncated_prompt = makeFilenameCompatible(prompt, 48);
+
+    // Add EXIF metadata
+    const modifiedBlob = await addExifMetadata(imageBlob, jobStatusData);
+
+    // Build filename
+    let filename;
+    if (image_paths.length > 1) {
+      filename = `${truncated_username}_${truncated_prompt}_${index}_${id}.png`
+    } else {
+      filename = `${truncated_username}_${truncated_prompt}_${id}.png`
+    }
+
+    // Add the image to the zip file
+    zip.file(filename, modifiedBlob);
+    fileCount++;
+  }
+
+  return fileCount;
+}
 
 function makeFilenameCompatible(str, maxLength) {
   if (typeof str === 'undefined') {
