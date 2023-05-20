@@ -1,5 +1,8 @@
 import JSZip from "jszip";
 
+let csvContent = "Filename,Prompt\n"; // CSV file header
+
+
 document.getElementById("dateForm").addEventListener("submit", async (event) => {
   event.preventDefault();
 
@@ -78,6 +81,7 @@ document.getElementById("dateForm").addEventListener("submit", async (event) => 
 
     // Generate and download the zip file
     if (fileCount > 0) {
+      zip.file("filename_prompt.csv", csvContent);
       const zipBlob = await zip.generateAsync({ type: "blob" });
       const downloadUrl = URL.createObjectURL(zipBlob);
       const downloadLink = document.createElement("a");
@@ -116,6 +120,13 @@ async function processImages(jobStatusData, zip) {
     } else {
       filename = `${datetime}_${id}_${truncated_prompt}.png`
     }
+
+    csvContent += `${filename},${prompt}\n`; // update CSV content
+
+    // Log the current fileCount, filename, and prompt
+    console.log(`fileCount: ${fileCount}`);
+    console.log(`filename: ${filename}`);
+    console.log(`prompt: ${prompt}`);
 
     // Add the image to the zip file
     zip.file(filename, modifiedBlob);
