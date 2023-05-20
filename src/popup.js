@@ -63,10 +63,13 @@ document.getElementById("dateForm").addEventListener("submit", async (event) => 
       // Process images
       if (isVersion5Plus && eventType === "imagine" && upscaleSelection === "allImagesV5Grids") {
         fileCount += await processImages(jobStatusData, zip);
+        csvData = result.csvData;
       } else if (isVersion5Plus && eventType === "upscale" && upscaleSelection === "onlyV5Upscales") {
         fileCount += await processImages(jobStatusData, zip);
+        csvData = result.csvData;
       } else if (!isVersion5Plus && eventType === "upscale") {
         fileCount += await processImages(jobStatusData, zip);
+        csvData = result.csvData;
       }
 
       processedJobs++;
