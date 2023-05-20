@@ -33,8 +33,7 @@ document.getElementById("dateForm").addEventListener("submit", async (event) => 
 
     // Create a zip file for the current date
     const zip = new JSzip();
-    let emptyTextFile = new Blob([""], {type: "text/plain"});
-    zip.file("empty.txt", emptyTextFile);
+    let csvData = "Filename,Prompt\n"; // Define CSV headers
     let fileCount = 0;
     let processedJobs = 0;
     let totalJobs = archiveData.length;
@@ -77,12 +76,11 @@ document.getElementById("dateForm").addEventListener("submit", async (event) => 
     processedDays++;
     progressDaysBar.value = (processedDays / totalDays) * 100;
 
+    
+
     // Generate and download the zip file
     if (fileCount > 0) {  
-
-      let emptyFilename = "empty.txt";
-      zip.file(emptyFilename, "");
-
+      zip.file("image_data.csv", csvData);
       const zipBlob = await zip.generateAsync({ type: "blob" });
       const downloadUrl = URL.createObjectURL(zipBlob);
       const downloadLink = document.createElement("a");
@@ -125,6 +123,9 @@ async function processImages(jobStatusData, zip) {
     // Add the image to the zip file
     zip.file(filename, modifiedBlob);
     fileCount++;
+
+    // Append data to CSV
+    csvData += `${filename},${prompt}\n`;
   }
 
   return fileCount;
