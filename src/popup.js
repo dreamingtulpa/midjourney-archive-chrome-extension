@@ -76,11 +76,11 @@ document.getElementById("dateForm").addEventListener("submit", async (event) => 
     processedDays++;
     progressDaysBar.value = (processedDays / totalDays) * 100;
 
-    
+    zip.file("image_data.csv", csvData);    
 
     // Generate and download the zip file
     if (fileCount > 0) {  
-      zip.file("image_data.csv", csvData);
+      
       const zipBlob = await zip.generateAsync({ type: "blob" });
       const downloadUrl = URL.createObjectURL(zipBlob);
       const downloadLink = document.createElement("a");
