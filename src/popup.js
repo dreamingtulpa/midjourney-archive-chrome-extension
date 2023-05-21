@@ -51,7 +51,7 @@ document.getElementById("dateForm").addEventListener("submit", async (event) => 
         body: JSON.stringify({ jobIds: [jobId] }),
       });
       const jobStatusData = await jobStatusResponse.json();
-      // console.log(jobStatusData);
+      console.log(jobStatusData);
 
       // Check job version
       let versionNumber = parseFloat(jobStatusData._parsed_params.version);
