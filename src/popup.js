@@ -61,7 +61,7 @@ document.getElementById("dateForm").addEventListener("submit", async (event) => 
       let eventType = jobStatusData.event.eventType
 
       // Process images
-      if (isVersion5Plus && eventType === "imagine" && upscaleSelection === "allImagesV5Grids") {
+      if (isVersion5Plus && eventType !== "upscale" && upscaleSelection === "allImagesV5Grids") {
         fileCount += await processImages(jobStatusData, zip);
       } else if (isVersion5Plus && eventType === "upscale" && upscaleSelection === "onlyV5Upscales") {
         fileCount += await processImages(jobStatusData, zip);
