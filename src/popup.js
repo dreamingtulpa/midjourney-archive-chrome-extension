@@ -96,30 +96,32 @@ async function processImages(jobStatusData, zip) {
   const { username, image_paths, id, parent_id, enqueue_time, full_command, prompt, event, _parsed_params } = jobStatusData;
   let fileCount = 0;
 
-  for (const [index, imagePath] of image_paths.entries()) {
-    // Fetch the image
-    const response = await fetch(imagePath);
-    const imageBlob = await response.blob();
+  if (image_paths !== null) {
+    for (const [index, imagePath] of image_paths.entries()) {
+      // Fetch the image
+      const response = await fetch(imagePath);
+      const imageBlob = await response.blob();
 
-    // Filename conversions
-    const truncated_username = makeFilenameCompatible(username);
-    const truncated_prompt = makeFilenameCompatible(prompt, 48);
-    const datetime = convertDateTimeFormat(enqueue_time);
+      // Filename conversions
+      const truncated_username = makeFilenameCompatible(username);
+      const truncated_prompt = makeFilenameCompatible(prompt, 48);
+      const datetime = convertDateTimeFormat(enqueue_time);
 
-    // Add EXIF metadata
-    const modifiedBlob = await addExifMetadata(imageBlob, jobStatusData);
+      // Add EXIF metadata
+      const modifiedBlob = await addExifMetadata(imageBlob, jobStatusData);
 
-    // Build filename
-    let filename;
-    if (image_paths.length > 1) {
-      filename = `${datetime}_${id}_${index}_${truncated_prompt}.png`
-    } else {
-      filename = `${datetime}_${id}_${truncated_prompt}.png`
+      // Build filename
+      let filename;
+      if (image_paths.length > 1) {
+        filename = `${datetime}_${id}_${index}_${truncated_prompt}.png`
+      } else {
+        filename = `${datetime}_${id}_${truncated_prompt}.png`
+      }
+
+      // Add the image to the zip file
+      zip.file(filename, modifiedBlob);
+      fileCount++;
     }
-
-    // Add the image to the zip file
-    zip.file(filename, modifiedBlob);
-    fileCount++;
   }
 
   return fileCount;
