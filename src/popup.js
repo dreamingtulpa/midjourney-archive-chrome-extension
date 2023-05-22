@@ -123,7 +123,7 @@ async function processImages(jobStatusData, zip, csvData) {
     fileCount++;
 
     // Append data to CSV
-    csvData += `${filename},"${prompt}"\n`;
+    csvData += `${filename},"${full_command}"\n`;
   }
 
   return { fileCount: fileCount, csvData: csvData };
