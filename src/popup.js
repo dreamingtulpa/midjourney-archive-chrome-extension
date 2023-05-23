@@ -1,4 +1,5 @@
 import JSZip from "jszip";
+let fileCount = 0;
 
 document.getElementById("dateForm").addEventListener("submit", async (event) => {
   event.preventDefault();
@@ -33,7 +34,8 @@ document.getElementById("dateForm").addEventListener("submit", async (event) => 
 
     // Create a zip file for the current date
     const zip = new JSZip();
-    let fileCount = 0;
+    let csvData = "Filename,Prompt\n"; // Define CSV headers
+    //let fileCount = 0;
 
     let processedJobs = 0;
     let totalJobs = archiveData.length;
@@ -62,17 +64,26 @@ document.getElementById("dateForm").addEventListener("submit", async (event) => 
 
       // Process images
       if (isVersion5Plus && eventType !== "upscale" && upscaleSelection === "allImagesV5Grids") {
-        fileCount += await processImages(jobStatusData, zip);
+        let result = await processImages(jobStatusData, zip, csvData);
+        fileCount += result.fileCount;
+        csvData = result.csvData;
       } else if (isVersion5Plus && eventType === "upscale" && upscaleSelection === "onlyV5Upscales") {
-        fileCount += await processImages(jobStatusData, zip);
+        let result = await processImages(jobStatusData, zip, csvData);
+        fileCount += result.fileCount;
+        csvData = result.csvData;
       } else if (!isVersion5Plus && eventType === "upscale") {
-        fileCount += await processImages(jobStatusData, zip);
+        let result = await processImages(jobStatusData, zip, csvData);
+        fileCount += result.fileCount;
+        csvData = result.csvData;
       }
 
       processedJobs++;
       progressJobsBar.value = (processedJobs / totalJobs) * 100;
       progressJobsMessage.innerText = `[${processedJobs}/${totalJobs}] Fetched ${jobId}!`;
     }
+
+    zip.file("image_data.csv", csvData);
+
     processedDays++;
     progressDaysBar.value = (processedDays / totalDays) * 100;
 
@@ -91,7 +102,7 @@ document.getElementById("dateForm").addEventListener("submit", async (event) => 
   progressDaysMessage.innerText = "Download complete!";
 });
 
-async function processImages(jobStatusData, zip) {
+async function processImages(jobStatusData, zip, csvData) {
   // Download and process images
   const { username, image_paths, id, parent_id, enqueue_time, full_command, prompt, event, _parsed_params } = jobStatusData;
   let fileCount = 0;
@@ -121,10 +132,14 @@ async function processImages(jobStatusData, zip) {
       // Add the image to the zip file
       zip.file(filename, modifiedBlob);
       fileCount++;
+
+      // Append data to CSV
+      csvData += `${filename},"${full_command}"\n`;
+
     }
   }
 
-  return fileCount;
+  return { fileCount: fileCount, csvData: csvData };
 }
 
 function makeFilenameCompatible(str, maxLength) {
