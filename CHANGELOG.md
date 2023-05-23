@@ -1,3 +1,7 @@
+# 1.3
+
+- Added an archived_jobs.json file to the zip file that contains all job data
+
 # 1.2
 
 - Updated filename format {YYYY-MM-DD-HHMMSS}_{id}_{truncated_prompt}
