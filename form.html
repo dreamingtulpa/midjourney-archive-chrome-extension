@@ -34,6 +34,10 @@
         display: block;
         margin: 8px auto 0 auto;
       }
+      #error {
+        color: red;
+        margin-bottom: 8px;
+      }
     </style>
   </head>
   <body>
@@ -58,6 +62,7 @@
       <label for="allImagesV5Grids">All images from v5+ grids</label><br>
       <small class='download-option-hint'>Only upscales will be downloaded for v1, v2, v3, v4, test, testp, niji-4 jobs regardless of above selection</small>
       <br>
+      <div class='hidden' id='error'></div>
       <button type="submit">Download Archive</button>
     </form>
     <div id="progressContainer" class="hidden">

@@ -14,8 +14,10 @@ document.getElementById("dateForm").addEventListener("submit", async (event) => 
   const progressJobsBar = document.getElementById("progressJobsBar");
   const progressJobsMessage = document.getElementById("progressJobsMessage");
   const form = document.getElementById("dateForm");
+  const error = document.getElementById("error");
   form.classList.add("hidden");
   progressContainer.classList.remove("hidden");
+  error.classList.add('hidden')
 
   let processedDays = 0;
   const totalDays = Math.floor((endDate - startDate) / (1000 * 60 * 60 * 24)) + 1;
@@ -29,6 +31,13 @@ document.getElementById("dateForm").addEventListener("submit", async (event) => 
 
     // Fetch the archive data
     const archiveResponse = await fetch(`https://www.midjourney.com/api/app/archive/day/?day=${day}&month=${month}&year=${year}`);
+    if (archiveResponse.status === 403) {
+      progressContainer.classList.add("hidden");
+      form.classList.remove("hidden");
+      error.classList.remove("hidden")
+      error.innerText = "Received HTTP 403 Forbidden. It seems you're not logged into https://www.midjourney.com.";
+      throw new Error(error.innerText);
+    }
     const archiveData = await archiveResponse.json();
 
     // Create a zip file for the current date
