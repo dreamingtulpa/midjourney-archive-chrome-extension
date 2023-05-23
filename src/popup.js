@@ -54,7 +54,7 @@ document.getElementById("dateForm").addEventListener("submit", async (event) => 
       console.log(jobStatusData);
 
       // Check job version
-      let versionNumber = parseFloat(jobStatusData._parsed_params.version);
+      let versionNumber = parseFloat(jobStatusData._parsed_params.niji) || parseFloat(jobStatusData._parsed_params.version);
       let isVersion5Plus = !isNaN(versionNumber) && versionNumber >= 5;
 
       // Set event type
