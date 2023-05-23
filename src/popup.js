@@ -45,6 +45,7 @@ document.getElementById("dateForm").addEventListener("submit", async (event) => 
     let fileCount = 0;
 
     let processedJobs = 0;
+    let archivedJobs = []
     let totalJobs = archiveData.length;
 
     // Process each item in the archive data
@@ -60,6 +61,7 @@ document.getElementById("dateForm").addEventListener("submit", async (event) => 
         body: JSON.stringify({ jobIds: [jobId] }),
       });
       const jobStatusData = await jobStatusResponse.json();
+
       console.log(jobStatusData);
 
       // Check job version
@@ -71,14 +73,14 @@ document.getElementById("dateForm").addEventListener("submit", async (event) => 
 
       // Process images
       if (isVersion5Plus && eventType !== "upscale" && upscaleSelection === "allImagesV5Grids") {
-        fileCount += await processImages(jobStatusData, zip);
+        fileCount += await processImages(jobStatusData, zip, archivedJobs);
       } else if (isVersion5Plus && eventType === "upscale" && upscaleSelection === "onlyV5Upscales") {
-        fileCount += await processImages(jobStatusData, zip);
+        fileCount += await processImages(jobStatusData, zip, archivedJobs);
       } else if (!isVersion5Plus && eventType === "upscale") {
-        fileCount += await processImages(jobStatusData, zip);
+        fileCount += await processImages(jobStatusData, zip, archivedJobs);
       }
 
-      processedJobs++;
+      processedJobs++
       progressJobsBar.value = (processedJobs / totalJobs) * 100;
       progressJobsMessage.innerText = `[${processedJobs}/${totalJobs}] Fetched ${jobId}!`;
     }
@@ -87,6 +89,8 @@ document.getElementById("dateForm").addEventListener("submit", async (event) => 
 
     // Generate and download the zip file
     if (fileCount > 0) {
+      zip.file("archived_jobs.json", JSON.stringify(archivedJobs));
+
       const zipBlob = await zip.generateAsync({ type: "blob" });
       const downloadUrl = URL.createObjectURL(zipBlob);
       const downloadLink = document.createElement("a");
@@ -100,12 +104,14 @@ document.getElementById("dateForm").addEventListener("submit", async (event) => 
   progressDaysMessage.innerText = "Download complete!";
 });
 
-async function processImages(jobStatusData, zip) {
+async function processImages(jobStatusData, zip, archivedJobs) {
   // Download and process images
   const { username, image_paths, id, parent_id, enqueue_time, full_command, prompt, event, _parsed_params } = jobStatusData;
   let fileCount = 0;
 
   if (image_paths !== null) {
+    jobStatusData._archived_files = [];
+
     for (const [index, imagePath] of image_paths.entries()) {
       // Fetch the image
       const response = await fetch(imagePath);
@@ -126,11 +132,14 @@ async function processImages(jobStatusData, zip) {
       } else {
         filename = `${datetime}_${id}_${truncated_prompt}.png`
       }
+      jobStatusData._archived_files.push(filename);
 
       // Add the image to the zip file
       zip.file(filename, modifiedBlob);
       fileCount++;
     }
+
+    archivedJobs.push(jobStatusData);
   }
 
   return fileCount;
