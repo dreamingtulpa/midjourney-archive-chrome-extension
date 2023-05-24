@@ -65,18 +65,23 @@ document.getElementById("dateForm").addEventListener("submit", async (event) => 
       console.log(jobStatusData);
 
       // Check job version
-      let versionNumber = parseFloat(jobStatusData._parsed_params.niji) || parseFloat(jobStatusData._parsed_params.version);
+      let versionNumber;
+      if (jobStatusData._parsed_params) {
+        versionNumber = parseFloat(jobStatusData._parsed_params.niji) || parseFloat(jobStatusData._parsed_params.version);
+      } else {
+        versionNumber = "undefined";
+      }
       let isVersion5Plus = !isNaN(versionNumber) && versionNumber >= 5;
 
       // Set event type
-      let eventType = jobStatusData.event.eventType
+      let isUpscale = jobStatusData.type !== "grid"
 
       // Process images
-      if (isVersion5Plus && eventType !== "upscale" && upscaleSelection === "allImagesV5Grids") {
+      if (isVersion5Plus && !isUpscale && upscaleSelection === "allImagesV5Grids") {
         fileCount += await processImages(jobStatusData, zip, archivedJobs);
-      } else if (isVersion5Plus && eventType === "upscale" && upscaleSelection === "onlyV5Upscales") {
+      } else if (isVersion5Plus && isUpscale && upscaleSelection === "onlyV5Upscales") {
         fileCount += await processImages(jobStatusData, zip, archivedJobs);
-      } else if (!isVersion5Plus && eventType === "upscale") {
+      } else if (!isVersion5Plus && isUpscale) {
         fileCount += await processImages(jobStatusData, zip, archivedJobs);
       }
 
@@ -106,7 +111,7 @@ document.getElementById("dateForm").addEventListener("submit", async (event) => 
 
 async function processImages(jobStatusData, zip, archivedJobs) {
   // Download and process images
-  const { username, image_paths, id, parent_id, enqueue_time, full_command, prompt, event, _parsed_params } = jobStatusData;
+  const { image_paths, id, enqueue_time, prompt } = jobStatusData;
   let fileCount = 0;
 
   if (image_paths !== null) {
@@ -118,7 +123,6 @@ async function processImages(jobStatusData, zip, archivedJobs) {
       const imageBlob = await response.blob();
 
       // Filename conversions
-      const truncated_username = makeFilenameCompatible(username);
       const truncated_prompt = makeFilenameCompatible(prompt, 48);
       const datetime = convertDateTimeFormat(enqueue_time);
 
