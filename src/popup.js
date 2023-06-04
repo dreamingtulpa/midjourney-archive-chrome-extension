@@ -2,6 +2,7 @@ import JSZip from "jszip";
 
 const zips = [];
 let batchSize;
+let onlyMetadata;
 
 document.getElementById("dateForm").addEventListener("submit", async (event) => {
   event.preventDefault();
@@ -10,6 +11,7 @@ document.getElementById("dateForm").addEventListener("submit", async (event) => 
   const endDate = new Date(event.target.endDate.value);
   const upscaleSelection = document.querySelector('input[name="upscaleOptions"]:checked').value;
   batchSize = parseInt(event.target.batchSize.value);
+  onlyMetadata = document.querySelector('input[name="onlyMetadata"]').checked;
 
   // Show progress container and hide form
   const progressContainer = document.getElementById("progressContainer");
@@ -110,29 +112,33 @@ async function processImages(jobStatusData) {
     jobStatusData._archived_files = [];
 
     for (const [index, imagePath] of image_paths.entries()) {
-      // Fetch the image
-      const response = await fetch(imagePath);
-      const imageBlob = await response.blob();
-
-      // Filename conversions
-      const truncated_prompt = makeFilenameCompatible(prompt, 48);
-      const datetime = convertDateTimeFormat(enqueue_time);
-
-      // Add EXIF metadata
-      const modifiedBlob = await addExifMetadata(imageBlob, jobStatusData);
-
-      // Build filename
-      let filename;
-      if (image_paths.length > 1) {
-        filename = `${datetime}_${id}_${index}_${truncated_prompt}.png`
-      } else {
-        filename = `${datetime}_${id}_${truncated_prompt}.png`
-      }
-      jobStatusData._archived_files.push(filename);
-
-      // Add the image to the zip file
       let zip = zips[zips.length - 1];
-      zip.archive.file(filename, modifiedBlob);
+
+      if (!onlyMetadata) {
+        // Fetch the image
+        const response = await fetch(imagePath);
+        const imageBlob = await response.blob();
+
+        // Filename conversions
+        const truncated_prompt = makeFilenameCompatible(prompt, 48);
+        const datetime = convertDateTimeFormat(enqueue_time);
+
+        // Add EXIF metadata
+        const modifiedBlob = await addExifMetadata(imageBlob, jobStatusData);
+
+        // Build filename
+        let filename;
+        if (image_paths.length > 1) {
+          filename = `${datetime}_${id}_${index}_${truncated_prompt}.png`
+        } else {
+          filename = `${datetime}_${id}_${truncated_prompt}.png`
+        }
+        jobStatusData._archived_files.push(filename);
+
+        // Add the image to the zip file
+        zip.archive.file(filename, modifiedBlob);
+      }
+
       zip.fileCount++;
 
       // Add jobStatusData to zip.jobs if it doesn't already exist

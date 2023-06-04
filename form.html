@@ -71,6 +71,11 @@
       <input type="number" id="batchSize" name="batchSize" value="250" /><br>
       <small class='download-option-hint'>Set it to something smaller if you have issues with larger batches. Leave empty for no batch limit.</small>
       <br>
+      <label>Metadata:</label><br>
+      <input type="checkbox" id="onlyMetadata" name="onlyMetadata" />
+      <label for="onlyMetadata">only download <code>archived_jobs.json</code></label>
+      <br>
+      <br>
       <div class='hidden' id='error'></div>
       <button type="submit">Download Archive</button>
     </form>
