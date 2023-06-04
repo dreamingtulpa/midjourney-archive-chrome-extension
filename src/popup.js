@@ -1,11 +1,15 @@
 import JSZip from "jszip";
 
+const zips = [];
+let batchSize;
+
 document.getElementById("dateForm").addEventListener("submit", async (event) => {
   event.preventDefault();
 
   const startDate = new Date(event.target.startDate.value);
   const endDate = new Date(event.target.endDate.value);
   const upscaleSelection = document.querySelector('input[name="upscaleOptions"]:checked').value;
+  batchSize = parseInt(event.target.batchSize.value);
 
   // Show progress container and hide form
   const progressContainer = document.getElementById("progressContainer");
@@ -25,12 +29,13 @@ document.getElementById("dateForm").addEventListener("submit", async (event) => 
   // Iterate through the dates and perform API calls
   for (let currentDate = startDate; currentDate <= endDate; currentDate.setDate(currentDate.getDate() + 1)) {
     progressDaysMessage.innerText = `[${processedDays}/${totalDays}] Processing ${currentDate.toISOString().slice(0, 10)}...`;
-    const year = currentDate.getFullYear();
-    const month = currentDate.getMonth() + 1;
-    const day = currentDate.getDate();
+    const settings = { "batch": 0, "date": {} };
+    settings.date.year = currentDate.getFullYear();
+    settings.date.month = currentDate.getMonth() + 1;
+    settings.date.day = currentDate.getDate();
 
     // Fetch the archive data
-    const archiveResponse = await fetch(`https://www.midjourney.com/api/app/archive/day/?day=${day}&month=${month}&year=${year}`);
+    const archiveResponse = await fetch(`https://www.midjourney.com/api/app/archive/day/?day=${settings.date.day}&month=${settings.date.month}&year=${settings.date.year}`);
     if (archiveResponse.status === 403) {
       progressContainer.classList.add("hidden");
       form.classList.remove("hidden");
@@ -41,11 +46,9 @@ document.getElementById("dateForm").addEventListener("submit", async (event) => 
     const archiveData = await archiveResponse.json();
 
     // Create a zip file for the current date
-    const zip = new JSZip();
-    let fileCount = 0;
+    zips.push(newZip(settings));
 
     let processedJobs = 0;
-    let archivedJobs = []
     let totalJobs = archiveData.length;
 
     // Process each item in the archive data
@@ -78,11 +81,11 @@ document.getElementById("dateForm").addEventListener("submit", async (event) => 
 
       // Process images
       if (isVersion5Plus && !isUpscale && upscaleSelection === "allImagesV5Grids") {
-        fileCount += await processImages(jobStatusData, zip, archivedJobs);
+        await processImages(jobStatusData);
       } else if (isVersion5Plus && isUpscale && upscaleSelection === "onlyV5Upscales") {
-        fileCount += await processImages(jobStatusData, zip, archivedJobs);
+        await processImages(jobStatusData);
       } else if (!isVersion5Plus && isUpscale) {
-        fileCount += await processImages(jobStatusData, zip, archivedJobs);
+        await processImages(jobStatusData);
       }
 
       processedJobs++
@@ -93,26 +96,15 @@ document.getElementById("dateForm").addEventListener("submit", async (event) => 
     progressDaysBar.value = (processedDays / totalDays) * 100;
 
     // Generate and download the zip file
-    if (fileCount > 0) {
-      zip.file("archived_jobs.json", JSON.stringify(archivedJobs));
-
-      const zipBlob = await zip.generateAsync({ type: "blob" });
-      const downloadUrl = URL.createObjectURL(zipBlob);
-      const downloadLink = document.createElement("a");
-      downloadLink.href = downloadUrl;
-      downloadLink.download = `midjourney_archive_${year}-${month}-${day}_[${fileCount}].zip`;
-      downloadLink.click();
-
-      URL.revokeObjectURL(downloadUrl);
-    }
+    let zip = zips[zips.length - 1];
+    if (zip.fileCount > 0) downloadZip(zip);
   }
   progressDaysMessage.innerText = "Download complete!";
 });
 
-async function processImages(jobStatusData, zip, archivedJobs) {
+async function processImages(jobStatusData) {
   // Download and process images
   const { image_paths, id, enqueue_time, prompt } = jobStatusData;
-  let fileCount = 0;
 
   if (image_paths !== null) {
     jobStatusData._archived_files = [];
@@ -139,14 +131,54 @@ async function processImages(jobStatusData, zip, archivedJobs) {
       jobStatusData._archived_files.push(filename);
 
       // Add the image to the zip file
-      zip.file(filename, modifiedBlob);
-      fileCount++;
-    }
+      let zip = zips[zips.length - 1];
+      zip.archive.file(filename, modifiedBlob);
+      zip.fileCount++;
 
-    archivedJobs.push(jobStatusData);
+      // Add jobStatusData to zip.jobs if it doesn't already exist
+      if (!zip.jobs.includes(jobStatusData)) {
+        zip.jobs.push(jobStatusData);
+      }
+
+      // Create a new zip file if the current one is full
+      if (zip.fileCount == batchSize) {
+        downloadZip(zip);
+        zips.push(newZip(zip.settings));
+      }
+    }
+  }
+}
+
+function newZip(settings) {
+  let archive = new JSZip();
+  let fileCount = 0;
+  let jobs = [];
+  let zipSettings = { "batch": settings.batch + 1, "date": settings.date }
+
+  return { "archive": archive, "fileCount": fileCount, "jobs": jobs, "settings": zipSettings };
+}
+
+async function downloadZip(zip) {
+  zip.archive.file("archived_jobs.json", JSON.stringify(zip.jobs));
+
+  const zipBlob = await zip.archive.generateAsync({ type: "blob" });
+  const downloadUrl = URL.createObjectURL(zipBlob);
+  const downloadLink = document.createElement("a");
+
+  let filename;
+  if (Number.isNaN(batchSize)) {
+    filename = `midjourney_archive_${zip.settings.date.year}-${zip.settings.date.month}-${zip.settings.date.day}_[${zip.fileCount}].zip`;
+  } else {
+    let start = (zip.settings.batch - 1) * batchSize + 1
+    let fileCount = `${start}-${start + zip.fileCount - 1}`;
+    filename = `midjourney_archive_${zip.settings.date.year}-${zip.settings.date.month}-${zip.settings.date.day}_[${fileCount}].zip`;
   }
 
-  return fileCount;
+  downloadLink.href = downloadUrl;
+  downloadLink.download = filename;
+  downloadLink.click();
+
+  URL.revokeObjectURL(downloadUrl);
 }
 
 function makeFilenameCompatible(str, maxLength) {

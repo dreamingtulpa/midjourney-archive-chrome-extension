@@ -67,6 +67,10 @@
       <label for="allImagesV5Grids">All images from v5+ grids</label><br>
       <small class='download-option-hint'>Only upscales will be downloaded for v1, v2, v3, v4, test, testp, niji-4 jobs regardless of above selection</small>
       <br>
+      <label for="batchSzie">Batch Size:</label><br>
+      <input type="number" id="batchSize" name="batchSize" value="250" /><br>
+      <small class='download-option-hint'>Set it to something smaller if you have issues with larger batches. Leave empty for no batch limit.</small>
+      <br>
       <div class='hidden' id='error'></div>
       <button type="submit">Download Archive</button>
     </form>
