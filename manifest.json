@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Midjourney Archive Downloader",
-  "version": "1.4.0",
+  "version": "1.5.0",
   "action": {
     "default_icon": {
       "16": "images/icon16.png",
@@ -10,7 +10,7 @@
     }
   },
   "host_permissions": [
-    "https://www.midjourney.com/",
+    "https://legacy.midjourney.com/",
     "https://storage.googleapis.com/*"
   ],
   "icons": {

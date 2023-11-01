@@ -1,5 +1,11 @@
 # Midjourney Archive Chrome Extension
 
+> 🚨 Midjourney released a new website which killed access to the archive
+endpoints. This means this extension will only work as long as
+[legacy.midjourney.com](https://legacy.midjourney.com) is online. Consider
+bringing this to the attention of the MJ team by posting about it in their
+[Discord](https://discord.gg/midjourney).
+
 I got a bit tired of Midjourney's limited and buggy archive download solution so
 I decided to put together a quick and dirty chrome extension with GPT-4.
 

@@ -37,12 +37,12 @@ document.getElementById("dateForm").addEventListener("submit", async (event) => 
     settings.date.day = currentDate.getDate();
 
     // Fetch the archive data
-    const archiveResponse = await fetch(`https://www.midjourney.com/api/app/archive/day/?day=${settings.date.day}&month=${settings.date.month}&year=${settings.date.year}`);
+    const archiveResponse = await fetch(`https://legacy.midjourney.com/api/app/archive/day/?day=${settings.date.day}&month=${settings.date.month}&year=${settings.date.year}`);
     if (archiveResponse.status === 403) {
       progressContainer.classList.add("hidden");
       form.classList.remove("hidden");
       error.classList.remove("hidden")
-      error.innerText = "Received HTTP 403 Forbidden. It seems you're not logged into https://www.midjourney.com.";
+      error.innerText = "Received HTTP 403 Forbidden. It seems you're not logged into https://legacy.midjourney.com.";
       throw new Error(error.innerText);
     }
     const archiveData = await archiveResponse.json();
@@ -60,7 +60,7 @@ document.getElementById("dateForm").addEventListener("submit", async (event) => 
       progressJobsMessage.innerText = `[${processedJobs}/${totalJobs}] Fetching ${jobId}...`;
 
       // Fetch the job status data
-      const jobStatusResponse = await fetch("https://www.midjourney.com/api/app/job-status/", {
+      const jobStatusResponse = await fetch("https://legacy.midjourney.com/api/app/job-status/", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ jobIds: [jobId] }),
